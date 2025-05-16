@@ -19,17 +19,17 @@ pub fn build(b: *Build) !void {
     const build_shared = b.option(bool, "shared", "build as shared library") orelse target.result.isMinGW();
     const use_readline =
         if (target.result.os.tag == .linux)
-        b.option(bool, "use_readline", "readline support for linux") orelse false
-    else
-        null;
+            b.option(bool, "use_readline", "readline support for linux") orelse false
+        else
+            null;
 
     const lua_src = b.dependency("lua", .{});
 
     const lib =
         b.addStaticLibrary(artifactOptions(
-        .{ .shared = false },
-        .{ .target = target, .optimize = optimize },
-    ));
+            .{ .shared = false },
+            .{ .target = target, .optimize = optimize },
+        ));
     const shared = if (build_shared)
         b.addSharedLibrary(artifactOptions(
             .{ .shared = true },
@@ -65,44 +65,44 @@ pub fn build(b: *Build) !void {
         t.addIncludePath(lua_src.path("src"));
         switch (target.result.os.tag) {
             .aix => {
-                t.defineCMacro("LUA_USE_POSIX", null);
-                t.defineCMacro("LUA_USE_DLOPEN", null);
+                t.root_module.addCMacro("LUA_USE_POSIX", "");
+                t.root_module.addCMacro("LUA_USE_DLOPEN", "");
                 t.linkSystemLibrary("dl");
             },
             .freebsd, .netbsd, .openbsd => {
-                t.defineCMacro("LUA_USE_LINUX", null);
-                t.defineCMacro("LUA_USE_READLINE", null);
+                t.root_module.addCMacro("LUA_USE_LINUX", "");
+                t.root_module.addCMacro("LUA_USE_READLINE", "");
                 t.addIncludePath(.{ .cwd_relative = "/usr/include/edit" });
                 t.linkSystemLibrary("edit");
             },
             .ios => {
-                t.defineCMacro("LUA_USE_IOS", null);
+                t.root_module.addCMacro("LUA_USE_IOS", "");
             },
             .linux => {
-                t.defineCMacro("LUA_USE_LINUX", null);
+                t.root_module.addCMacro("LUA_USE_LINUX", "");
                 t.linkSystemLibrary("dl");
                 if (use_readline.?) {
-                    t.defineCMacro("LUA_USE_READLINE", null);
+                    t.root_module.addCMacro("LUA_USE_READLINE", "");
                     t.linkSystemLibrary("readline");
                 }
             },
             .macos => {
-                t.defineCMacro("LUA_USE_MACOSX", null);
-                t.defineCMacro("LUA_USE_READLINE", null);
+                t.root_module.addCMacro("LUA_USE_MACOSX", "");
+                t.root_module.addCMacro("LUA_USE_READLINE", "");
                 t.linkSystemLibrary("readline");
             },
             .solaris => {
-                t.defineCMacro("LUA_USE_POSIX", null);
-                t.defineCMacro("LUA_USE_DLOPEN", null);
-                t.defineCMacro("_REENTRANT", null);
+                t.root_module.addCMacro("LUA_USE_POSIX", "");
+                t.root_module.addCMacro("LUA_USE_DLOPEN", "");
+                t.root_module.addCMacro("_REENTRANT", "");
                 t.linkSystemLibrary("dl");
             },
             else => {},
         }
     }
     if (target.result.isMinGW()) {
-        lib.defineCMacro("LUA_BUILD_AS_DLL", null);
-        exe.defineCMacro("LUA_BUILD_AS_DLL", null);
+        lib.root_module.addCMacro("LUA_BUILD_AS_DLL", "");
+        exe.root_module.addCMacro("LUA_BUILD_AS_DLL", "");
     }
     if (shared) |s| {
         s.addCSourceFiles(.{

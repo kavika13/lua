@@ -35,5 +35,5 @@ const lua_dep = b.dependency("lua", .{
     .target = target,
     .release = optimize != .Debug,
 });
-const lua_lib = lua_dep.artifact("lua");
+const lua_lib = lua_dep.artifact(if (target.result.os.tag == .windows) "lua54" else "lua");
 ```
